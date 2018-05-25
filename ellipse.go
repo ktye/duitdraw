@@ -1,9 +1,6 @@
 package draw
 
-import (
-	"fmt"
-	"image"
-)
+import "image"
 
 // Arc draws, using SoverD, the arc centered at c, with thickness 1+2*thick,
 // using the specified source color. The arc starts at angle alpha and extends
