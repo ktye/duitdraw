@@ -24,10 +24,9 @@ To try the backend, copy the content of this repository to `$GOPATH/src/github.c
 This is just a very basic first first release and tested only on windows.
 Please test and comment.
 
-- fonts (right now only basicfont is embedded)
-	- plan9 style or ttf path (Go font could be embedded)?
+- fonts (right now Go regular is embedded)
+	- plan9 style or ttf path?
 	- ttf: freetype or golang.org/x/image/font/sfnt?
-	- sfnt: how to implement font.Face?
 - client windows cannot be closed
 	- is it a bug in shiny (windows)?
 	- how to propagate close requests? By a channel or with Release?
