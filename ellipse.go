@@ -2,6 +2,44 @@ package draw
 
 import "image"
 
+// How to draw ellipses?
+// As I understand, low level rasterizers don't have a function to draw arcs directly, you need to create the paths before.
+//
+// This is how srwiley does it in oksvg:
+// https://github.com/srwiley/oksvg/blob/bb18c2355556cc1db9c11f026bfe350deab1a482/svgp.go#L321
+//
+// This is what I did before to draw full circles:
+/*
+type circle struct {
+        x, y, r fixed.Int26_6
+}
+
+// getPath approximates a circle by 8 quadrativ curve segments.
+func (c circle) getPath() raster.Path {
+        d := fixed.Point26_6{c.x, c.y}
+        r := c.r
+        s := fixed.Int26_6(float64(c.r) * math.Sqrt(2.0) / 2.0)
+        t := fixed.Int26_6(float64(c.r) * math.Tan(math.Pi/8))
+        P := func(x, y fixed.Int26_6) fixed.Point26_6 {
+                return fixed.Point26_6{x, y}
+        }
+        var path raster.Path
+        path.Start(d.Add(P(r, 0)))
+        path.Add2(d.Add(P(r, t)), d.Add(P(s, s)))
+        path.Add2(d.Add(P(t, r)), d.Add(P(0, r)))
+        path.Add2(d.Add(P(-t, r)), d.Add(P(-s, s)))
+        path.Add2(d.Add(P(-r, t)), d.Add(P(-r, 0)))
+        path.Add2(d.Add(P(-r, -t)), d.Add(P(-s, -s)))
+        path.Add2(d.Add(P(-t, -r)), d.Add(P(0, -r)))
+        path.Add2(d.Add(P(t, -r)), d.Add(P(s, -s)))
+        path.Add2(d.Add(P(r, -t)), d.Add(P(r, 0)))
+        return path
+}
+*/
+// How accurate does it have to be anyway?
+// Is it used only for small segments (like 3 pixel edges to input boxes)?
+
+
 // Arc draws, using SoverD, the arc centered at c, with thickness 1+2*thick,
 // using the specified source color. The arc starts at angle alpha and extends
 // counterclockwise by phi; angles are measured in degrees from the x axis.
