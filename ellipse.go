@@ -39,7 +39,6 @@ func (c circle) getPath() raster.Path {
 // How accurate does it have to be anyway?
 // Is it used only for small segments (like 3 pixel edges to input boxes)?
 
-
 // Arc draws, using SoverD, the arc centered at c, with thickness 1+2*thick,
 // using the specified source color. The arc starts at angle alpha and extends
 // counterclockwise by phi; angles are measured in degrees from the x axis.

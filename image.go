@@ -39,6 +39,12 @@ func (dst *Image) Draw(r image.Rectangle, src, mask *Image, p1 image.Point) {
 	fmt.Println("shiny: Draw: mask is not nil")
 }
 
+// Border draws a retangular border of size r and width n, with n positive
+// meaning the border is inside r. It uses SoverD.
+func (dst *Image) Border(r image.Rectangle, n int, color *Image, sp image.Point) {
+	// TODO
+}
+
 // Free is currently ignored.
 // TODO: do we need anything about this?
 func (i *Image) Free() error {

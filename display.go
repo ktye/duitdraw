@@ -25,6 +25,7 @@ type Display struct {
 	ScreenImage *Image
 	DefaultFont *Font
 	Black       *Image // Pre-allocated color.
+	White       *Image
 	mouse       Mousectl
 	keyboard    Keyboardctl
 	window      screen.Window
@@ -73,7 +74,7 @@ func (d *Display) Attach(ref int) error {
 func (d *Display) Close() error {
 	fmt.Println("shiny: Close TODO")
 	// How should we close the window?
-	// d.window.Release() ?
+	// d.window.Release() // ?
 	return nil
 }
 

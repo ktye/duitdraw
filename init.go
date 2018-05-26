@@ -59,6 +59,10 @@ func newWindow(label, winsize string) (*Display, screen.NewWindowOptions) {
 			R: image.Rect(0, 0, 1, 1),
 			m: image.NewUniform(color.Black),
 		},
+		White: &Image{
+			R: image.Rect(0, 0, 1, 1),
+			m: image.NewUniform(color.White),
+		},
 		ScreenImage: &Image{
 			R: image.Rect(0, 0, opt.Width, opt.Height),
 			// m will be backed by screen.Buffer on size event.
