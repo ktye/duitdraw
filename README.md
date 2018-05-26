@@ -14,11 +14,11 @@ As a first step `duitdraw` is a drop-in replacement for `github.com/9fans/go/dra
 
 Once this becomes a valid alternative to the original drawing backend, duit could be changed to interface better with shiny.
 
-The scope of the package is not a full implementation of `9fans/go/draw`. Everything that is not needed by duit in the initial release state is removed.
+The scope of the package is not a full implementation of `9fans.net/go/draw`. Everything that is not needed by duit in the initial release state is removed.
 
 
 # Usage
-To try the backend, copy the content of this repository to `$GOPATH/src/github.com/9fans/go/draw` and recompile duit.
+To try the backend, copy the content of this repository to `$GOPATH/src/9fans.net/go/draw` and recompile duit.
 
 # Current state
 This is just a very basic first first release and tested only on windows.
