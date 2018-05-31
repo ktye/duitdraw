@@ -7,6 +7,7 @@ import (
 	"image/draw"
 	"sync"
 
+	"golang.org/x/exp/shiny/imageutil"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
 )
@@ -41,8 +42,13 @@ func (dst *Image) Draw(r image.Rectangle, src, mask *Image, p1 image.Point) {
 
 // Border draws a retangular border of size r and width n, with n positive
 // meaning the border is inside r. It uses SoverD.
-func (dst *Image) Border(r image.Rectangle, n int, color *Image, sp image.Point) {
-	// TODO
+func (dst *Image) Border(r image.Rectangle, n int, src *Image, sp image.Point) {
+	dst.Lock()
+	defer dst.Unlock()
+
+	for _, r := range imageutil.Border(r, n) {
+		draw.Draw(dst.m.(*image.RGBA), r, src.m, sp, draw.Src)
+	}
 }
 
 // Free is currently ignored.
