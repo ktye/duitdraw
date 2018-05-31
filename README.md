@@ -42,4 +42,3 @@ Please test and comment.
 	- inner window offset is hard coded
 - shiny
 	- window flickers on resize, are we using shiny the wrong way?
-- program crashes when the window is closed

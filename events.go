@@ -2,6 +2,7 @@ package draw
 
 import (
 	"image"
+	"io"
 	"time"
 
 	"golang.org/x/mobile/event/key"
@@ -27,6 +28,7 @@ func (d *Display) eventLoop(errch chan<- error) {
 			// TODO: Closing a single windows works, but closing
 			// a child window leaves the window hanging.
 			if e.To == lifecycle.StageDead {
+				errch <- io.EOF
 				return
 			}
 
