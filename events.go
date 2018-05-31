@@ -16,6 +16,10 @@ func (d *Display) eventLoop(errch chan<- error) {
 	w := d.window
 	b := d.buffer
 	var err error
+
+	// Send an initial mouse event to trigger a Redraw.
+	d.mouse.C <- d.mouse.Mouse
+
 	for {
 		switch e := w.NextEvent().(type) {
 		case lifecycle.Event:
