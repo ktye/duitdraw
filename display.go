@@ -9,6 +9,7 @@ import (
 	"github.com/atotto/clipboard"
 
 	"golang.org/x/exp/shiny/screen"
+	"golang.org/x/mobile/event/lifecycle"
 )
 
 // Refresh is ignored in the implementation, but duit needs it.
@@ -72,9 +73,10 @@ func (d *Display) Attach(ref int) error {
 
 // Close closes the window.
 func (d *Display) Close() error {
-	fmt.Println("shiny: Close TODO")
-	// How should we close the window?
-	// d.window.Release() // ?
+	e := lifecycle.Event{
+		To: lifecycle.StageDead,
+	}
+	d.window.Send(e)
 	return nil
 }
 

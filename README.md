@@ -27,9 +27,6 @@ Please test and comment.
 - fonts (right now Go regular is embedded)
 	- plan9 style or ttf path?
 	- ttf: freetype or golang.org/x/image/font/sfnt?
-- client windows cannot be closed
-	- is it a bug in shiny (windows)?
-	- how to propagate close requests? By a channel or with Release?
 - drawing
 	- only a simple line algorithm is implemented
 	- which rasterization should be used, freetype or golang.org/x/image/vector?

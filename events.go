@@ -24,9 +24,6 @@ func (d *Display) eventLoop(errch chan<- error) {
 	for {
 		switch e := w.NextEvent().(type) {
 		case lifecycle.Event:
-			// fmt.Println(e)
-			// TODO: Closing a single windows works, but closing
-			// a child window leaves the window hanging.
 			if e.To == lifecycle.StageDead {
 				errch <- io.EOF
 				return
