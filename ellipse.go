@@ -1,6 +1,10 @@
 package draw
 
-import "image"
+import (
+	"image"
+	"image/color"
+	"image/draw"
+)
 
 // How to draw ellipses?
 // As I understand, low level rasterizers don't have a function to draw arcs directly, you need to create the paths before.
@@ -57,6 +61,14 @@ func (dst *Image) Arc(c image.Point, a, b, thick int, src *Image, sp image.Point
 	// starting at angle alpha and extending through an angle of phi.
 	// The angles are measured in degrees counterclockwise from the positive x axis.
 
+	// For full circles we assume that a==b and ignore thick.
+	if alpha == 0 && phi == 360 {
+		dst.Lock()
+		defer dst.Unlock()
+		drawCircle(dst.m.(*image.RGBA), c.X, c.Y, a, src.m.At(0, 0))
+		return
+	}
+
 	// We assume duit only calls with phi=90 and alpha: 0, 90, 180, 270.
 	var p0, p1 image.Point
 	switch alpha {
@@ -86,5 +98,57 @@ func (dst *Image) Arc(c image.Point, a, b, thick int, src *Image, sp image.Point
 // x axis.
 func (dst *Image) FillArc(c image.Point, a, b, thick int, src *Image, sp image.Point, alpha, phi int) {
 	//doellipse('E', dst, c, a, b, thick, src, sp, uint32(alpha)|1<<31, phi, SoverD)
-	// TODO
+
+	// For full arcs, we assume a==b and ignore thick.
+	if alpha == 0 && phi == 360 {
+		dst.Lock()
+		defer dst.Unlock()
+		fillCircle(dst.m.(*image.RGBA), c.X, c.Y, a, src.m)
+	}
+}
+
+// drawCircle is a simple rasterizer for a circle with integer pixel coordinates and a thin border.
+func drawCircle(im draw.Image, xm, ym, r int, c color.Color) {
+	var x, y, e int
+	x = -r
+	e = 2 - 2*r
+	for x < 0 {
+		im.Set(xm-x, ym+y, c)
+		im.Set(xm-y, ym-x, c)
+		im.Set(xm+x, ym-y, c)
+		im.Set(xm+y, ym+x, c)
+		r = e
+		if r <= y {
+			y++
+			e += 2*y + 1
+		}
+		if r > x || e > y {
+			x++
+			e += 2*x + 1
+		}
+	}
+}
+
+// fillCircle fills a circle using a mask.
+func fillCircle(im draw.Image, xm, ym, r int, src image.Image) {
+	draw.DrawMask(im, im.Bounds(), src, image.ZP, &circle{image.Point{xm, ym}, r}, image.ZP, draw.Over)
+}
+
+type circle struct {
+	p image.Point
+	r int
+}
+
+func (c *circle) ColorModel() color.Model {
+	return color.AlphaModel
+}
+func (c *circle) Bounds() image.Rectangle {
+	return image.Rect(c.p.X-c.r-1, c.p.Y-c.r-1, c.p.X+c.r+1, c.p.Y+c.r+1)
+}
+func (c *circle) At(x, y int) color.Color {
+	xx, yy, rr := float64(x-c.p.X), float64(y-c.p.Y), float64(c.r)+0.5
+	if xx*xx+yy*yy < rr*rr {
+		return color.Alpha{255}
+	}
+	return color.Alpha{0}
 }
