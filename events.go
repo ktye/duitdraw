@@ -63,13 +63,18 @@ func (d *Display) eventLoop(errch chan<- error) {
 				} else if e.Direction == mouse.DirRelease {
 					d.mouse.Buttons &= ^(1 << uint(e.Button-1))
 				}
+			} else if e.Button < 0 {
+				// For mouse wheel events, we receive a single event
+				// but duit expects two: set the bit and release it.
+				shift := uint(3) // ButtonWheelUp
+				if e.Button == mouse.ButtonWheelDown {
+					shift = 4
+				}
+				d.mouse.Buttons ^= 1 << shift
+				d.sendMouseEvent(e)
+				d.mouse.Buttons &= ^(1 << shift)
 			}
-			d.mouse.Point.X = int(e.X)
-			d.mouse.Point.Y = int(e.Y)
-			t := time.Now()
-			d.mouse.Msec = uint32(t.Sub(d.mouse.last) * time.Millisecond)
-			d.mouse.last = t
-			d.mouse.C <- d.mouse.Mouse
+			d.sendMouseEvent(e)
 
 		case key.Event:
 			// We forward the event for key presses and subsequent events
@@ -102,4 +107,13 @@ func (d *Display) eventLoop(errch chan<- error) {
 
 		}
 	}
+}
+
+func (d *Display) sendMouseEvent(e mouse.Event) {
+	d.mouse.Point.X = int(e.X)
+	d.mouse.Point.Y = int(e.Y)
+	t := time.Now()
+	d.mouse.Msec = uint32(t.Sub(d.mouse.last) * time.Millisecond)
+	d.mouse.last = t
+	d.mouse.C <- d.mouse.Mouse
 }
