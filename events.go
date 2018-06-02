@@ -77,13 +77,6 @@ func (d *Display) eventLoop(errch chan<- error) {
 			var sendKey rune = -1
 			if r := e.Rune; e.Direction != key.DirRelease {
 				if r != -1 {
-					if e.Modifiers&key.ModControl != 0 {
-						//r += KeyCmd
-						// Why changes the 'a' key from 0x61 to 0x1 when Cntrl
-						// is pressed? This happens on windows.
-						// Is this a bug in shiny or expected?
-						r += KeyCmd + 'a' - 1
-					}
 					sendKey = r
 				} else {
 					if r, ok := keymap[e.Code]; ok {
