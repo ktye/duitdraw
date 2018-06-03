@@ -15,9 +15,10 @@ import (
 // Refresh is ignored in the implementation, but duit needs it.
 const Refmesg = 2
 
-// DefaultDPI
-// TODO what is that supposed to do?
-const DefaultDPI = 133
+// DefaultDPI is the initial DPI setting for a new display.
+// TODO: should we get DPI settings from the screen?
+// Currently there is no interface in shiny.
+const DefaultDPI = 100
 
 // Display stores the information for a single window, that is returned to duit.
 // Duit requestes a Display by calling Init for each window.
