@@ -1,28 +1,123 @@
 package draw
 
 import (
+	"fmt"
 	"image"
+	"io/ioutil"
+	"strconv"
+	"strings"
+	"sync"
 
+	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
+	"golang.org/x/image/font/gofont/goregular"
 )
 
 type Font struct {
+	FaceID // This field is not present in 9fans draw package.
 	Height int
 	face   font.Face
 }
 
-// OpenFont reads the named file and returns the font it defines. The name may
-// be an absolute path, or identify a file in a standard font directory:
-// /lib/font/bit, /usr/local/plan9, /mnt/font, etc.
+type FaceID struct {
+	Name string
+	Size int
+	DPI  int
+}
+
+// FaceCache stores font.Faces.
+type FaceCache struct {
+	sync.Mutex
+	m map[FaceID]font.Face
+}
+
+var faceCache FaceCache
+
+// OpenFont opens a font with a given name and an optional size.
+// Currently truetype fonts are supported with the syntax:
+// "/path/to/font.ttf@12pt".
 func (d *Display) OpenFont(name string) (*Font, error) {
-	// TODO
-	return defaultFont, nil
+	fmt.Printf("OpenFont: %s\n", name)
+
+	size := DefaultFontSize
+	if idx := strings.LastIndex(name, "@"); idx != -1 {
+		ext := name[idx+1:]
+		ext = strings.TrimSuffix(ext, "pt")
+		if n, err := strconv.Atoi(ext); err != nil {
+			return nil, fmt.Errorf("OpenFont: cannot parse font size: %s", name)
+		} else {
+			size = n
+		}
+		name = name[:idx]
+	}
+	return openFont(FaceID{Name: name, Size: size, DPI: d.DPI})
+}
+
+// OpenFont loads a font from fontCache, from Disk or returns GoRegular
+// if the font name is empty.
+func openFont(id FaceID) (*Font, error) {
+	faceCache.Lock()
+	defer faceCache.Unlock()
+	if f, ok := faceCache.m[id]; ok {
+		return &Font{
+			FaceID: id,
+			Height: int(f.Metrics().Ascent / 64),
+			face:   f,
+		}, nil
+	}
+
+	var ttf []byte
+	if id.Name == "" {
+		ttf = goregular.TTF
+	} else {
+		if b, err := ioutil.ReadFile(id.Name); err != nil {
+			return nil, err
+		} else {
+			ttf = b
+		}
+	}
+
+	if f, err := truetype.Parse(ttf); err != nil {
+		return nil, fmt.Errorf("%s: %s", id.Name, err)
+	} else {
+		opt := truetype.Options{
+			Size: float64(id.Size),
+			DPI:  float64(id.DPI),
+		}
+		face := truetype.NewFace(f, &opt)
+		faceCache.m[id] = face
+
+		return &Font{
+			FaceID: id,
+			Height: int(face.Metrics().Ascent / 64),
+			face:   face,
+		}, nil
+	}
+
+	/* TODO: use sfnt/opentype, when it's finished.
+	f, err := sfnt.Parse(ttf)
+	opt := opentype.FaceOptions{
+		Size:    12,
+		DPI:     72,
+		Hinting: font.HintingNone,
+	}
+	face, err := opentype.NewFace(f, &opt)
+	*/
+}
+
+func (f *Font) SetDPI(dpi int) *Font {
+	id := f.FaceID
+	id.DPI = dpi
+	if font, err := openFont(id); err != nil {
+		return f
+	} else {
+		return font
+	}
 }
 
 func (f Font) StringSize(s string) image.Point {
 	dx := f.StringWidth(s)
 	dy := f.Height
-	// fmt.Printf("shiny: StringSize(%s) %d %d\n", s, dx, dy)
 	return image.Point{dx, dy}
 }
 
@@ -30,6 +125,25 @@ func (f Font) StringSize(s string) image.Point {
 // by the string if it were drawn using the font.
 func (f *Font) StringWidth(s string) int {
 	dx := int(font.MeasureString(f.face, s) / 64)
-	// fmt.Printf("shiny: StringWidth(%s) %d\n", s, dx)
 	return dx
+}
+
+// defaultFont is used for new Displays.
+// It is GoRegular at DefaultSize for DefaultDPI.
+var defaultFont *Font
+
+func init() {
+	// DefaultFont is GoRegular which is built-in.
+	faceCache.m = make(map[FaceID]font.Face)
+	id := FaceID{
+		Name: "",
+		Size: DefaultFontSize,
+		DPI:  DefaultDPI,
+	}
+	var err error
+	defaultFont, err = openFont(id)
+	if err != nil {
+		panic(err)
+	}
+	faceCache.m[id] = defaultFont.face
 }

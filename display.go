@@ -20,6 +20,8 @@ const Refmesg = 2
 // Currently there is no interface in shiny.
 const DefaultDPI = 100
 
+const DefaultFontSize = 10
+
 // Display stores the information for a single window, that is returned to duit.
 // Duit requestes a Display by calling Init for each window.
 type Display struct {
