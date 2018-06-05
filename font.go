@@ -61,7 +61,7 @@ func openFont(id FaceID) (*Font, error) {
 	if f, ok := faceCache.m[id]; ok {
 		return &Font{
 			FaceID: id,
-			Height: int(f.Metrics().Ascent / 64),
+			Height: int(f.Metrics().Height / 64),
 			face:   f,
 		}, nil
 	}
@@ -89,7 +89,7 @@ func openFont(id FaceID) (*Font, error) {
 
 		return &Font{
 			FaceID: id,
-			Height: int(face.Metrics().Ascent / 64),
+			Height: int(face.Metrics().Height / 64),
 			face:   face,
 		}, nil
 	}
