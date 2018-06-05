@@ -11,6 +11,7 @@ import (
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/gofont/goregular"
+	"golang.org/x/image/math/fixed"
 )
 
 type Font struct {
@@ -84,12 +85,12 @@ func openFont(id FaceID) (*Font, error) {
 			Size: float64(id.Size),
 			DPI:  float64(id.DPI),
 		}
-		face := truetype.NewFace(f, &opt)
+		face := pixFace{Face: truetype.NewFace(f, &opt)}
 		faceCache.m[id] = face
 
 		return &Font{
 			FaceID: id,
-			Height: int(face.Metrics().Height / 64),
+			Height: int((face.Metrics().Height + 32) / 64),
 			face:   face,
 		}, nil
 	}
@@ -124,8 +125,30 @@ func (f Font) StringSize(s string) image.Point {
 // StringWidth returns the number of horizontal pixels that would be occupied
 // by the string if it were drawn using the font.
 func (f *Font) StringWidth(s string) int {
-	dx := int(font.MeasureString(f.face, s) / 64)
+	dx := int(font.MeasureString(f.face, s)+32) / 64
 	return dx
+}
+
+// pixFace wraps a font.Face which ignores Kern and advances only by full pixels.
+// Duit calls StringWidth on each rune to calculate coordinates and uses only ints.
+type pixFace struct {
+	font.Face
+}
+
+func (f pixFace) Kern(r0, r1 rune) fixed.Int26_6 {
+	return 0
+}
+
+func (f pixFace) Glyph(dot fixed.Point26_6, r rune) (dr image.Rectangle, mask image.Image, maskp image.Point, advance fixed.Int26_6, ok bool) {
+	dr, mask, maskp, advance, ok = f.Face.Glyph(dot, r)
+	advance = 64 * fixed.Int26_6(int(advance+32)/64)
+	return
+}
+
+func (f pixFace) GlyphBounds(r rune) (bounds fixed.Rectangle26_6, advance fixed.Int26_6, ok bool) {
+	bounds, advance, ok = f.Face.GlyphBounds(r)
+	advance = 64 * fixed.Int26_6(int(advance+32)/64)
+	return
 }
 
 // defaultFont is used for new Displays.
