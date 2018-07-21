@@ -5,11 +5,8 @@ package draw
 type Color uint32
 
 const (
-	Transparent Color = 0x00000000 /* only useful for allocimage memfillcolor */
-	White       Color = 0xFFFFFFFF
-
-/*
 	Opaque        Color = 0xFFFFFFFF
+	Transparent   Color = 0x00000000 /* only useful for allocimage memfillcolor */
 	Black         Color = 0x000000FF
 	White         Color = 0xFFFFFFFF
 	Red           Color = 0xFF0000FF
@@ -37,5 +34,4 @@ const (
 
 	Notacolor Color = 0xFFFFFF00
 	Nofill    Color = Notacolor
-*/
 )

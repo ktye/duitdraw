@@ -16,8 +16,8 @@ const (
 	KeyDown  = 0x80
 	//KeyView      = 0x80
 	KeyPageDown = KeyFn | 0x13
-	//KeyInsert    = KeyFn | 0x14
-	KeyEnd = KeyFn | 0x18
+	KeyInsert   = KeyFn | 0x14
+	KeyEnd      = KeyFn | 0x18
 	//KeyAlt       = KeyFn | 0x15
 	//KeyShift     = KeyFn | 0x16
 	//KeyCtl       = KeyFn | 0x17

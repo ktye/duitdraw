@@ -1,6 +1,7 @@
 package draw
 
 import (
+	"errors"
 	"fmt"
 	"image"
 	"image/color"
@@ -12,8 +13,13 @@ import (
 	"golang.org/x/mobile/event/lifecycle"
 )
 
-// Refresh is ignored in the implementation, but duit needs it.
-const Refmesg = 2
+// Refresh algorithms to execute when a window is resized or uncovered.
+// Ignored in this implementation.
+const (
+	Refbackup = 0
+	Refnone   = 1
+	Refmesg   = 2
+)
 
 // DefaultDPI is the initial DPI setting for a new display.
 // TODO: should we get DPI settings from the screen?
@@ -29,7 +35,9 @@ type Display struct {
 	ScreenImage *Image
 	DefaultFont *Font
 	Black       *Image // Pre-allocated color.
-	White       *Image
+	White       *Image // Pre-allocated color.
+	Opaque      *Image // Pre-allocated color.
+	Transparent *Image // Pre-allocated color.
 	mouse       Mousectl
 	keyboard    Keyboardctl
 	window      screen.Window
@@ -54,15 +62,17 @@ func (d *Display) AllocImage(r image.Rectangle, pix Pix, repl bool, val Color) (
 
 	if repl {
 		return &Image{
-			R: r,
-			m: image.NewUniform(c),
+			Display: d,
+			R:       r,
+			m:       image.NewUniform(c),
 		}, nil
 	} else {
 		m := image.NewRGBA(r)
 		draw.Draw(m, m.Bounds(), &image.Uniform{c}, image.ZP, draw.Src)
 		return &Image{
-			R: r,
-			m: m,
+			Display: d,
+			R:       r,
+			m:       m,
 		}, nil
 
 	}
@@ -131,4 +141,27 @@ func (d *Display) ReadSnarf(buf []byte) (int, int, error) {
 // WriteSnarf writes the data to the snarf buffer.
 func (d *Display) WriteSnarf(data []byte) error {
 	return clipboard.WriteAll(string(data))
+}
+
+func (d *Display) ScaleSize(n int) int {
+	if d == nil || d.DPI <= DefaultDPI {
+		return n
+	}
+	return (n*d.DPI + DefaultDPI/2) / DefaultDPI
+}
+
+// Cursor describes a single cursor.
+type Cursor struct {
+	image.Point
+	Clr [2 * 16]uint8
+	Set [2 * 16]uint8
+}
+
+// SetCursor sets the mouse cursor to the specified cursor image.
+// SetCursor(nil) changes the cursor to the standard system cursor.
+func (d *Display) SetCursor(c *Cursor) error {
+	if c != nil {
+		return errors.New("duitdraw: SetCursor is not implemented")
+	}
+	return nil
 }

@@ -16,6 +16,8 @@ type Image struct {
 	sync.Mutex                 // Locking is used only internally.
 	R          image.Rectangle // The extent of the image.
 	m          image.Image
+	Display    *Display
+	Pix        Pix // The pixel format for the image.
 }
 
 // Draw copies the source image with upper left corner p1 to the destination
@@ -73,6 +75,10 @@ func (dst *Image) Load(r image.Rectangle, data []byte) (int, error) {
 
 	// Is len(data) ok? Duit does not read the first argument anyway.
 	return len(data), nil
+}
+
+func (dst *Image) Bytes(pt image.Point, src *Image, sp image.Point, f *Font, b []byte) image.Point {
+	return dst.String(pt, src, sp, f, string(b))
 }
 
 // String draws the string in the specified font using SoverD on the image,

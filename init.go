@@ -52,18 +52,23 @@ func newWindow(label, winsize, fontname string) (*Display, screen.NewWindowOptio
 
 	dpy := Display{
 		DPI: DefaultDPI,
-		Black: &Image{
-			R: image.Rect(0, 0, 1, 1),
-			m: image.NewUniform(color.Black),
-		},
-		White: &Image{
-			R: image.Rect(0, 0, 1, 1),
-			m: image.NewUniform(color.White),
-		},
-		ScreenImage: &Image{
-			R: image.Rect(0, 0, opt.Width, opt.Height),
-			// m will be backed by screen.Buffer on size event.
-		},
+	}
+	dpy.Black = &Image{
+		Display: &dpy,
+		R:       image.Rect(0, 0, 1, 1),
+		m:       image.NewUniform(color.Black),
+	}
+	dpy.White = &Image{
+		Display: &dpy,
+		R:       image.Rect(0, 0, 1, 1),
+		m:       image.NewUniform(color.White),
+	}
+	dpy.Opaque = dpy.White
+	dpy.Transparent = dpy.Black
+	dpy.ScreenImage = &Image{
+		Display: &dpy,
+		R:       image.Rect(0, 0, opt.Width, opt.Height),
+		// m will be backed by screen.Buffer on size event.
 	}
 	if f, err := dpy.OpenFont(fontname); err != nil {
 		dpy.DefaultFont = defaultFont
@@ -74,6 +79,7 @@ func newWindow(label, winsize, fontname string) (*Display, screen.NewWindowOptio
 	dpy.mouse.C = make(chan Mouse, 0)
 	dpy.mouse.Resize = make(chan bool, 2) // Why 2? (copied from InitMouse).
 	dpy.mouse.last = time.Now()
+	dpy.mouse.Display = &dpy
 	dpy.keyboard.C = make(chan rune, 20)
 
 	return &dpy, opt
