@@ -129,6 +129,18 @@ func (f *Font) StringWidth(s string) int {
 	return dx
 }
 
+// ByteWidth returns the number of horizontal pixels that would be occupied by
+// the byte slice if it were drawn using the font.
+func (f *Font) BytesWidth(b []byte) int {
+	return f.StringWidth(string(b))
+}
+
+// RuneWidth returns the number of horizontal pixels that would be occupied by
+// the rune slice if it were drawn using the font.
+func (f *Font) RunesWidth(r []rune) int {
+	return f.StringWidth(string(r))
+}
+
 // pixFace wraps a font.Face which ignores Kern and advances only by full pixels.
 // Duit calls StringWidth on each rune to calculate coordinates and uses only ints.
 type pixFace struct {

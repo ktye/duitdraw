@@ -17,6 +17,7 @@ const (
 	NChan
 )
 
+var GREY8 = MakePix(CGrey, 8)
 var ARGB32 = MakePix(CAlpha, 8, CRed, 8, CGreen, 8, CBlue, 8) // stupid VGAs
 var ABGR32 = MakePix(CAlpha, 8, CBlue, 8, CGreen, 8, CRed, 8)
 

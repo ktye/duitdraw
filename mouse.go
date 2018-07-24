@@ -14,8 +14,17 @@ type Mouse struct {
 }
 
 type Mousectl struct {
-	Mouse             // Store Mouse events here.
-	C      chan Mouse // Channel of Mouse events.
-	Resize chan bool  // Each received value signals a window resize (see the display.Attach method).
-	last   time.Time  // Time of last update.
+	Mouse              // Store Mouse events here.
+	C       chan Mouse // Channel of Mouse events.
+	Resize  chan bool  // Each received value signals a window resize (see the display.Attach method).
+	last    time.Time  // Time of last update.
+	Display *Display
+}
+
+// Read returns the next mouse event.
+func (mc *Mousectl) Read() Mouse {
+	mc.Display.Flush()
+	m := <-mc.C
+	mc.Mouse = m
+	return m
 }
