@@ -31,17 +31,18 @@ const DefaultFontSize = 10
 // Display stores the information for a single window, that is returned to duit.
 // Duit requestes a Display by calling Init for each window.
 type Display struct {
-	DPI         int
-	ScreenImage *Image
-	DefaultFont *Font
-	Black       *Image // Pre-allocated color.
-	White       *Image // Pre-allocated color.
-	Opaque      *Image // Pre-allocated color.
-	Transparent *Image // Pre-allocated color.
-	mouse       Mousectl
-	keyboard    Keyboardctl
-	window      screen.Window
-	buffer      screen.Buffer
+	DPI           int
+	ScreenImage   *Image
+	DefaultFont   *Font
+	Black         *Image // Pre-allocated color.
+	White         *Image // Pre-allocated color.
+	Opaque        *Image // Pre-allocated color.
+	Transparent   *Image // Pre-allocated color.
+	KeyTranslator KeyTranslator
+	mouse         Mousectl
+	keyboard      Keyboardctl
+	window        screen.Window
+	buffer        screen.Buffer
 }
 
 // AllocImage allocates a new Image on display d. The arguments are:

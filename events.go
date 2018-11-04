@@ -77,31 +77,35 @@ func (d *Display) eventLoop(errch chan<- error) {
 			d.sendMouseEvent(e)
 
 		case key.Event:
-			// We forward the event for key presses and subsequent events
-			// if the key remains down, but not for releases.
-			var sendKey rune = -1
-			if r := e.Rune; e.Direction != key.DirRelease {
-				if r != -1 {
-					sendKey = r
-				} else {
-					if r, ok := keymap[e.Code]; ok {
+			if t := d.KeyTranslator; t == nil {
+				// We forward the event for key presses and subsequent events
+				// if the key remains down, but not for releases.
+				var sendKey rune = -1
+				if r := e.Rune; e.Direction != key.DirRelease {
+					if r != -1 {
 						sendKey = r
+					} else {
+						if r, ok := keymap[e.Code]; ok {
+							sendKey = r
+						}
 					}
+
+				}
+				if sendKey != -1 {
+					// Shiny sends \r on Enter, duit expects \n.
+					if sendKey == '\r' {
+						sendKey = '\n'
+					}
+					// fmt.Printf("shiny: key: %x %v\n", sendKey, e)
+					d.keyboard.C <- sendKey
 				}
 
-			}
-			if sendKey != -1 {
-				// Shiny sends \r on Enter, duit expects \n.
-				if sendKey == '\r' {
-					sendKey = '\n'
-				}
-				// fmt.Printf("shiny: key: %x %v\n", sendKey, e)
-				d.keyboard.C <- sendKey
-			}
+				// TODO: what about Shift-KeyLeft/Right
+				// to mark text? This seems to be unsupported in duit right now.
 
-			// TODO: what about Shift-KeyLeft/Right
-			// to mark text? This seems to be unsupported in duit right now.
-
+			} else if r := t.TranslateKey(e); r != -1 {
+				d.keyboard.C <- r
+			}
 		case error:
 			errch <- e
 

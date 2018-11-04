@@ -52,3 +52,10 @@ type Keyboardctl struct {
 func (d *Display) InitKeyboard() *Keyboardctl {
 	return &d.keyboard
 }
+
+// KeyTranslator translates a key.Event to a rune.
+// If present, it overwrites the default mechanism.
+// If TranslateKey returns -1, the key event is ignored.
+type KeyTranslator interface {
+	TranslateKey(key.Event) rune
+}
