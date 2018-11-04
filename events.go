@@ -36,6 +36,12 @@ func (d *Display) eventLoop(errch chan<- error) {
 			d.ScreenImage.Unlock()
 
 		case size.Event:
+			// When minimizing a window, it receives a size.Event,
+			// but the new size is 0. duit complains about and exits.
+			if e.WidthPx == 0 {
+				continue
+			}
+
 			d.ScreenImage.Lock()
 			if b != nil {
 				b.Release()
