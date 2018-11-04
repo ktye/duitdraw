@@ -38,8 +38,6 @@ var faceCache FaceCache
 // Currently truetype fonts are supported with the syntax:
 // "/path/to/font.ttf@12pt".
 func (d *Display) OpenFont(name string) (*Font, error) {
-	fmt.Printf("OpenFont: %s\n", name)
-
 	size := DefaultFontSize
 	if idx := strings.LastIndex(name, "@"); idx != -1 {
 		ext := name[idx+1:]
@@ -52,6 +50,13 @@ func (d *Display) OpenFont(name string) (*Font, error) {
 		name = name[:idx]
 	}
 	return openFont(FaceID{Name: name, Size: size, DPI: d.DPI})
+}
+
+// RegisterFont adds a font face to the font cache.
+func RegisterFont(id FaceID, face font.Face) {
+	faceCache.Lock()
+	defer faceCache.Unlock()
+	faceCache.m[id] = face
 }
 
 // OpenFont loads a font from fontCache, from Disk or returns GoRegular
