@@ -20,6 +20,15 @@ type Image struct {
 	Pix        Pix // The pixel format for the image.
 }
 
+// MakeImage returns an Image from an *image.RGBA.
+func (d *Display) MakeImage(m *image.RGBA) *Image {
+	return &Image{
+		Display: d,
+		R:       m.Bounds(),
+		m:       m,
+	}
+}
+
 // Draw copies the source image with upper left corner p1 to the destination
 // rectangle r, through the specified mask using operation SoverD. The
 // coordinates are aligned so p1 in src and mask both correspond to r.min in
