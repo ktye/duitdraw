@@ -18,8 +18,45 @@ func (d *Display) eventLoop(errch chan<- error) {
 	b := d.buffer
 	var err error
 
+	resizeFunc := func(e size.Event) {
+		d.ScreenImage.Lock()
+		if b != nil {
+			b.Release()
+		}
+		b, err = mainScreen.NewBuffer(e.Size())
+		if err != nil {
+			errch <- err
+			d.ScreenImage.Unlock()
+			return
+		}
+		d.buffer = b
+		d.ScreenImage.m = b.RGBA()
+		d.ScreenImage.R = b.Bounds()
+		d.ScreenImage.Unlock()
+		d.mouse.Resize <- true
+	}
+	// Initial resize call, to allocate the buffer.
+	resizeFunc(size.Event{WidthPx: 800, HeightPx: 600})
+
 	// Send an initial mouse event to trigger a Redraw.
 	d.mouse.C <- d.mouse.Mouse
+
+	// Delay and filter resize events.
+	resize := make(chan size.Event)
+	go func(se chan size.Event) {
+		var cur size.Event
+		delay := 100 * time.Millisecond
+		t := time.NewTimer(delay)
+		for {
+			select {
+			case e := <-se:
+				cur = e
+				t.Reset(delay) // Is that safe?
+			case <-t.C:
+				resizeFunc(cur)
+			}
+		}
+	}(resize)
 
 	for {
 		switch e := w.NextEvent().(type) {
@@ -30,10 +67,13 @@ func (d *Display) eventLoop(errch chan<- error) {
 			}
 
 		case paint.Event:
-			d.ScreenImage.Lock()
-			w.Upload(image.Point{}, b, b.Bounds())
-			w.Publish()
-			d.ScreenImage.Unlock()
+			if b != nil {
+
+				d.ScreenImage.Lock()
+				w.Upload(image.Point{}, b, b.Bounds())
+				w.Publish()
+				d.ScreenImage.Unlock()
+			}
 
 		case size.Event:
 			// When minimizing a window, it receives a size.Event,
@@ -41,22 +81,7 @@ func (d *Display) eventLoop(errch chan<- error) {
 			if e.WidthPx == 0 {
 				continue
 			}
-
-			d.ScreenImage.Lock()
-			if b != nil {
-				b.Release()
-			}
-			b, err = mainScreen.NewBuffer(e.Size())
-			if err != nil {
-				errch <- err
-				d.ScreenImage.Lock()
-				return
-			}
-			d.buffer = b
-			d.ScreenImage.m = b.RGBA()
-			d.ScreenImage.R = b.Bounds()
-			d.ScreenImage.Unlock()
-			d.mouse.Resize <- true
+			resize <- e
 
 		case mouse.Event:
 			// Mouse.Buttons stores a bitmask for each button state.
