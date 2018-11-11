@@ -114,6 +114,8 @@ func (d *Display) InitMouse() *Mousectl {
 func (d *Display) MoveTo(pt image.Point) error {
 	// Uncomment for cursor calibration:
 	// fmt.Printf("shiny: MoveTo %v\n", pt)
+	d.ScreenImage.Lock()
+	defer d.ScreenImage.Unlock()
 	return moveTo(pt)
 }
 
