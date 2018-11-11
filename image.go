@@ -37,18 +37,24 @@ func (dst *Image) Draw(r image.Rectangle, src, mask *Image, p1 image.Point) {
 	dst.Lock()
 	defer dst.Unlock()
 
+	var im draw.Image
+	switch m := dst.m.(type) {
+	case *image.RGBA:
+		im = m
+	default:
+		fmt.Println("shiny: image dst not implemented %T", m)
+		return
+	}
+
 	if src == nil {
 		fmt.Println("shiny: Draw: src is nil")
 		return
 	}
 	if mask == nil {
-		// fmt.Printf("shiny: Draw to %v\n", r)
-		draw.Draw(dst.m.(*image.RGBA), r, src.m, p1, draw.Src)
+		draw.Draw(im, r, src.m, p1, draw.Src)
 		return
 	}
-
-	// It is assumed duit always calls Draw with a nil mask.
-	fmt.Println("shiny: Draw: mask is not nil")
+	draw.DrawMask(im, r, src.m, p1, mask.m, p1, draw.Over)
 }
 
 // Border draws a retangular border of size r and width n, with n positive

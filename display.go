@@ -61,7 +61,8 @@ func (d *Display) AllocImage(r image.Rectangle, pix Pix, repl bool, val Color) (
 		A: uint8(val),
 	}
 
-	if repl {
+	// Ignore repl if the image size is > 1.
+	if repl && r.Max.X == 1 && r.Max.Y == 1 {
 		return &Image{
 			Display: d,
 			R:       r,
