@@ -1,4 +1,4 @@
-package draw
+package duitdraw
 
 import "golang.org/x/mobile/event/key"
 

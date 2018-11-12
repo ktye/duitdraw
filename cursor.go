@@ -1,6 +1,6 @@
 // +build !windows
 
-package draw
+package duitdraw
 
 import (
 	"fmt"

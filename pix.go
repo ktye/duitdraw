@@ -1,4 +1,4 @@
-package draw
+package duitdraw
 
 // Pix represents a pixel format described simple notation: r8g8b8 for RGB24, m8
 // for color-mapped 8 bits, etc. The representation is 8 bits per channel,
