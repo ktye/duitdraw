@@ -29,6 +29,17 @@ func (d *Display) MakeImage(m *image.RGBA) *Image {
 	}
 }
 
+// DrawImage draws a normal image.Image over dst.
+// Image should implement draw.Image, but it currently doesn't.
+// This cannot be changed now, as Draw is already defined.
+func (dst *Image) DrawImage(r image.Rectangle, src image.Image, pt image.Point, op draw.Op) {
+	dst.Lock()
+	defer dst.Unlock()
+	if m, ok := dst.m.(draw.Image); ok {
+		draw.Draw(m, r, src, pt, op)
+	}
+}
+
 // Draw copies the source image with upper left corner p1 to the destination
 // rectangle r, through the specified mask using operation SoverD. The
 // coordinates are aligned so p1 in src and mask both correspond to r.min in
