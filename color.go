@@ -1,5 +1,7 @@
 package duitdraw
 
+import "image/color"
+
 // A Color represents an RGBA value, 8 bits per element. Red is the high 8
 // bits, green the next 8 and so on.
 type Color uint32
@@ -35,3 +37,12 @@ const (
 	Notacolor Color = 0xFFFFFF00
 	Nofill    Color = Notacolor
 )
+
+func (c Color) rgba() color.RGBA {
+	return color.RGBA{
+		R: uint8(c >> 24),
+		G: uint8(c >> 16),
+		B: uint8(c >> 8),
+		A: uint8(c),
+	}
+}

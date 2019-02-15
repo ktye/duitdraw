@@ -53,7 +53,7 @@ func (dst *Image) Draw(r image.Rectangle, src, mask *Image, p1 image.Point) {
 	case *image.RGBA:
 		im = m
 	default:
-		fmt.Println("shiny: image dst not implemented %T", m)
+		fmt.Printf("shiny: image dst not implemented %T\n", m)
 		return
 	}
 
