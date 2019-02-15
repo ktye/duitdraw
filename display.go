@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"image"
-	"image/color"
 	"image/draw"
 
 	"github.com/atotto/clipboard"
@@ -54,12 +53,7 @@ type Display struct {
 // Duit calls AllocImage to allocate colors for a single pixel rectange with repl = true.
 // We return a uniform image instead.
 func (d *Display) AllocImage(r image.Rectangle, pix Pix, repl bool, val Color) (*Image, error) {
-	c := color.RGBA{
-		R: uint8(val >> 24),
-		G: uint8(val >> 16),
-		B: uint8(val >> 8),
-		A: uint8(val),
-	}
+	c := val.rgba()
 
 	// Ignore repl if the image size is > 1.
 	if repl && r.Max.X == 1 && r.Max.Y == 1 {
