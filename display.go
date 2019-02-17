@@ -1,7 +1,6 @@
 package duitdraw
 
 import (
-	"errors"
 	"fmt"
 	"image"
 	"image/draw"
@@ -158,8 +157,7 @@ type Cursor struct {
 // SetCursor sets the mouse cursor to the specified cursor image.
 // SetCursor(nil) changes the cursor to the standard system cursor.
 func (d *Display) SetCursor(c *Cursor) error {
-	if c != nil {
-		return errors.New("duitdraw: SetCursor is not implemented")
-	}
-	return nil
+	d.ScreenImage.Lock()
+	defer d.ScreenImage.Unlock()
+	return setCursor(c)
 }
