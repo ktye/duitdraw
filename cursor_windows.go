@@ -1,6 +1,7 @@
 package duitdraw
 
 import (
+	"errors"
 	"fmt"
 	"image"
 	"os"
@@ -40,6 +41,13 @@ func moveTo(pt image.Point) error {
 	pt = pt.Add(abs.Min).Sub(cursorOffset)
 	if cursor.MoveTo(pt) == false {
 		return fmt.Errorf("move cursor failed")
+	}
+	return nil
+}
+
+func setCursor(c *Cursor) error {
+	if c != nil {
+		return errors.New("duitdraw: SetCursor is not implemented")
 	}
 	return nil
 }
