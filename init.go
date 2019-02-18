@@ -25,10 +25,14 @@ func Init(errch chan<- error, fontname, label, winsize string) (*Display, error)
 			mainScreen = s
 			createWindow(dpy, opt, errch)
 		})
+		// make sure ScreenImage buffer is allocated
+		<-dpy.mouse.Resize
 		return dpy, nil
 	} else {
 		dpy, opt := newWindow(label, winsize, fontname)
 		go createWindow(dpy, opt, errch)
+		// make sure ScreenImage buffer is allocated
+		<-dpy.mouse.Resize
 		return dpy, nil
 	}
 }
