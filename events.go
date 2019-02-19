@@ -127,6 +127,11 @@ func (d *Display) eventLoop(errch chan<- error) {
 					if sendKey == '\r' {
 						sendKey = '\n'
 					}
+					if e.Modifiers == 0x2 { // Ctrl
+						if r, ok := ctrlMods[sendKey]; ok {
+							sendKey = r
+						}
+					}
 					// fmt.Printf("shiny: key: %x %v\n", sendKey, e)
 					d.keyboard.C <- sendKey
 				}

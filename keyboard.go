@@ -21,26 +21,40 @@ const (
 	//KeyAlt       = KeyFn | 0x15
 	//KeyShift     = KeyFn | 0x16
 	//KeyCtl       = KeyFn | 0x17
-	//KeyBackspace = 0x08
-	KeyDelete = 0x7F
-	KeyEscape = 0x1b
+	KeyBackspace = 0x08
+	KeyDelete    = 0x7F
+	KeyEscape    = 0x1b
 	//KeyEOF       = 0x04
 	KeyCmd = 0xF100
 )
 
 // Keymap maps from key event codes to runes, that duit expects.
 var keymap = map[key.Code]rune{
-	key.CodeHome:       KeyHome,
-	key.CodeUpArrow:    KeyUp,
-	key.CodePageUp:     KeyPageUp,
-	key.CodeLeftArrow:  KeyLeft,
-	key.CodeRightArrow: KeyRight,
-	key.CodeDownArrow:  KeyDown,
-	key.CodePageDown:   KeyPageDown,
-	key.CodeEnd:        KeyEnd,
+	key.CodeHome:            KeyHome,
+	key.CodeUpArrow:         KeyUp,
+	key.CodePageUp:          KeyPageUp,
+	key.CodeLeftArrow:       KeyLeft,
+	key.CodeRightArrow:      KeyRight,
+	key.CodeDownArrow:       KeyDown,
+	key.CodePageDown:        KeyPageDown,
+	key.CodeInsert:          KeyInsert,
+	key.CodeEnd:             KeyEnd,
+	key.CodeDeleteBackspace: KeyBackspace,
 	//key.CodeDelete:     KeyDelete,
-	key.CodeEscape: KeyEscape,
+	key.CodeDeleteForward: KeyDelete,
+	key.CodeEscape:        KeyEscape,
 	//key.CodeCmd:        KeyCmd,
+	key.CodeReturnEnter: '\n',
+	key.CodeTab:         '\t',
+}
+
+var ctrlMods = map[rune]rune{
+	'a': 0x01, // ^a: beginning of line
+	'e': 0x05, // ^e: end of line
+	'f': 0x06, // ^f: complete
+	'h': 0x08, // ^h: erase character
+	'u': 0x15, // ^u: erase line
+	'w': 0x17, // ^w: erase word
 }
 
 // Keyboardctl is the source of keyboard events.
