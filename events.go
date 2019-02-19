@@ -147,8 +147,7 @@ func (d *Display) eventLoop(errch chan<- error) {
 func (d *Display) sendMouseEvent(e mouse.Event) {
 	d.mouse.Point.X = int(e.X)
 	d.mouse.Point.Y = int(e.Y)
-	t := time.Now()
-	d.mouse.Msec = uint32(t.Sub(d.mouse.last) * time.Millisecond)
-	d.mouse.last = t
+	t := time.Now().UnixNano() / (1000 * 1000) // Milliseconds
+	d.mouse.Msec = uint32(t)
 	d.mouse.C <- d.mouse.Mouse
 }

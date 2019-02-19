@@ -7,7 +7,6 @@ import (
 	"log"
 	"strconv"
 	"strings"
-	"time"
 
 	"golang.org/x/exp/shiny/driver"
 	"golang.org/x/exp/shiny/screen"
@@ -82,7 +81,6 @@ func newWindow(label, winsize, fontname string) (*Display, screen.NewWindowOptio
 	}
 	dpy.mouse.C = make(chan Mouse, 0)
 	dpy.mouse.Resize = make(chan bool, 2) // Why 2? (copied from InitMouse).
-	dpy.mouse.last = time.Now()
 	dpy.mouse.Display = &dpy
 	dpy.keyboard.C = make(chan rune, 20)
 
