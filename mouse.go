@@ -2,7 +2,6 @@ package duitdraw
 
 import (
 	"image"
-	"time"
 )
 
 // Mouse is the structure describing the current state of the mouse.
@@ -17,7 +16,6 @@ type Mousectl struct {
 	Mouse              // Store Mouse events here.
 	C       chan Mouse // Channel of Mouse events.
 	Resize  chan bool  // Each received value signals a window resize (see the display.Attach method).
-	last    time.Time  // Time of last update.
 	Display *Display
 }
 
