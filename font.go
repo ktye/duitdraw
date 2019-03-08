@@ -65,9 +65,11 @@ func openFont(id FaceID) (*Font, error) {
 	faceCache.Lock()
 	defer faceCache.Unlock()
 	if f, ok := faceCache.m[id]; ok {
+		m := f.Metrics()
+		// TODO(fhs): Remove workaround for wrong m.Height.
 		return &Font{
 			FaceID: id,
-			Height: int(f.Metrics().Height / 64),
+			Height: (m.Ascent + m.Descent).Round(),
 			face:   f,
 		}, nil
 	}
@@ -93,9 +95,11 @@ func openFont(id FaceID) (*Font, error) {
 		face := pixFace{Face: truetype.NewFace(f, &opt)}
 		faceCache.m[id] = face
 
+		m := face.Metrics()
+		// TODO(fhs): Remove workaround for wrong m.Height.
 		return &Font{
 			FaceID: id,
-			Height: int((face.Metrics().Height + 32) / 64),
+			Height: (m.Ascent + m.Descent).Round(),
 			face:   face,
 		}, nil
 	}
