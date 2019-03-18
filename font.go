@@ -134,7 +134,13 @@ func (f Font) StringSize(s string) image.Point {
 // StringWidth returns the number of horizontal pixels that would be occupied
 // by the string if it were drawn using the font.
 func (f *Font) StringWidth(s string) int {
-	dx := int(font.MeasureString(f.face, s)+32) / 64
+	dx := 0
+	for _, c := range s {
+		a, ok := f.face.GlyphAdvance(c)
+		if ok {
+			dx += a.Round()
+		}
+	}
 	return dx
 }
 
