@@ -66,8 +66,16 @@ func newWindow(label, winsize, fontname string) (*Display, screen.NewWindowOptio
 		R:       image.Rect(0, 0, 1, 1),
 		m:       image.NewUniform(color.White),
 	}
-	dpy.Opaque = dpy.White
-	dpy.Transparent = dpy.Black
+	dpy.Opaque = &Image{
+		Display: &dpy,
+		R:       image.Rect(0, 0, 1, 1),
+		m:       image.NewUniform(color.Opaque),
+	}
+	dpy.Transparent = &Image{
+		Display: &dpy,
+		R:       image.Rect(0, 0, 1, 1),
+		m:       image.NewUniform(color.Transparent),
+	}
 	dpy.ScreenImage = &Image{
 		Display: &dpy,
 		R:       image.Rect(0, 0, opt.Width, opt.Height),
