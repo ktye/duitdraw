@@ -17,6 +17,7 @@ func (d *Display) eventLoop(errch chan<- error) {
 	w := d.window
 	b := d.buffer
 	var err error
+	var mm Mouse
 
 	resizeFunc := func(e size.Event) {
 		d.ScreenImage.Lock()
@@ -90,9 +91,9 @@ func (d *Display) eventLoop(errch chan<- error) {
 				if e.Direction == mouse.DirPress {
 					// Uncomment for cursorOffset calibration:
 					// fmt.Printf("shiny: mouse click: %f %f\n", e.X, e.Y)
-					d.mouse.Buttons ^= 1 << uint(e.Button-1)
+					mm.Buttons ^= 1 << uint(e.Button-1)
 				} else if e.Direction == mouse.DirRelease {
-					d.mouse.Buttons &= ^(1 << uint(e.Button-1))
+					mm.Buttons &= ^(1 << uint(e.Button-1))
 				}
 			} else if e.Button < 0 {
 				// For mouse wheel events, we receive a single event
@@ -101,11 +102,11 @@ func (d *Display) eventLoop(errch chan<- error) {
 				if e.Button == mouse.ButtonWheelDown {
 					shift = 4
 				}
-				d.mouse.Buttons ^= 1 << shift
-				d.sendMouseEvent(e)
-				d.mouse.Buttons &= ^(1 << shift)
+				mm.Buttons ^= 1 << shift
+				d.sendMouseEvent(e, &mm)
+				mm.Buttons &= ^(1 << shift)
 			}
-			d.sendMouseEvent(e)
+			d.sendMouseEvent(e, &mm)
 
 		case key.Event:
 			if t := d.KeyTranslator; t == nil {
@@ -149,10 +150,13 @@ func (d *Display) eventLoop(errch chan<- error) {
 	}
 }
 
-func (d *Display) sendMouseEvent(e mouse.Event) {
-	d.mouse.Point.X = int(e.X)
-	d.mouse.Point.Y = int(e.Y)
+func (d *Display) sendMouseEvent(e mouse.Event, m *Mouse) {
+	m.Point.X = int(e.X)
+	m.Point.Y = int(e.Y)
 	t := time.Now().UnixNano() / (1000 * 1000) // Milliseconds
-	d.mouse.Msec = uint32(t)
-	d.mouse.C <- d.mouse.Mouse
+	m.Msec = uint32(t)
+
+	d.mouse.C <- *m
+	// Mouse field is racy. See Mousectl documentation.
+	d.mouse.Mouse = *m
 }

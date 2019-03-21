@@ -12,6 +12,13 @@ type Mouse struct {
 
 }
 
+// TODO: Mouse field is racy but okay.
+
+// Mousectl holds the interface to receive mouse events.
+// The Mousectl's Mouse is updated after send so it doesn't
+// have the wrong value if the sending goroutine blocks during send.
+// This means that programs should receive into Mousectl.Mouse
+// if they want full synchrony.
 type Mousectl struct {
 	Mouse              // Store Mouse events here.
 	C       chan Mouse // Channel of Mouse events.
@@ -23,6 +30,7 @@ type Mousectl struct {
 func (mc *Mousectl) Read() Mouse {
 	mc.Display.Flush()
 	m := <-mc.C
+	// Mouse field is racy. See Mousectl documentation.
 	mc.Mouse = m
 	return m
 }
