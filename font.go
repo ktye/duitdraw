@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"io/ioutil"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -11,6 +12,7 @@ import (
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/gofont/goregular"
+	"golang.org/x/image/font/plan9font"
 	"golang.org/x/image/math/fixed"
 )
 
@@ -35,9 +37,13 @@ type FaceCache struct {
 var faceCache FaceCache
 
 // OpenFont opens a font with a given name and an optional size.
-// Currently truetype fonts are supported with the syntax:
-// "/path/to/font.ttf@12pt".
+// Currently Plan 9 bitmap fonts and truetype fonts are supported.
+// Plan 9 font must have filename or extension "font" and truetype font
+// have the syntax "/path/to/font.ttf@12pt".
 func (d *Display) OpenFont(name string) (*Font, error) {
+	if s := strings.ToLower(name); filepath.Base(s) == "font" || filepath.Ext(s) == ".font" {
+		return openPlan9Font(FaceID{Name: name})
+	}
 	size := DefaultFontSize
 	if idx := strings.LastIndex(name, "@"); idx != -1 {
 		ext := name[idx+1:]
@@ -113,6 +119,37 @@ func openFont(id FaceID) (*Font, error) {
 	}
 	face, err := opentype.NewFace(f, &opt)
 	*/
+}
+
+func openPlan9Font(id FaceID) (*Font, error) {
+	faceCache.Lock()
+	defer faceCache.Unlock()
+	if f, ok := faceCache.m[id]; ok {
+		return &Font{
+			FaceID: id,
+			Height: f.Metrics().Height.Round(),
+			face:   f,
+		}, nil
+	}
+
+	fontData, err := ioutil.ReadFile(id.Name)
+	if err != nil {
+		return nil, err
+	}
+	dir := filepath.Dir(id.Name)
+	face, err := plan9font.ParseFont(fontData, func(name string) ([]byte, error) {
+		return ioutil.ReadFile(filepath.Join(dir, name))
+	})
+	if err != nil {
+		return nil, err
+	}
+	faceCache.m[id] = face
+
+	return &Font{
+		FaceID: id,
+		Height: face.Metrics().Height.Round(),
+		face:   face,
+	}, nil
 }
 
 func (f *Font) SetDPI(dpi int) *Font {
