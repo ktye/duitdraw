@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"io"
 	"log"
+	"os"
 	"strconv"
 	"strings"
+	"sync"
 
 	"golang.org/x/exp/shiny/driver"
 	"golang.org/x/exp/shiny/screen"
@@ -15,11 +18,67 @@ import (
 // mainScreen stores the screen which is initialized for the first window.
 var mainScreen screen.Screen
 
+// Main is called by the program's main function to run the graphical
+// application.
+//
+// It calls f on the Device, possibly in a separate goroutine, as some OS-
+// specific libraries require being on 'the main thread'. It returns when f
+// returns.
+func Main(f func(*Device)) {
+	driver.Main(func(ss screen.Screen) {
+		dev := newDevice(ss)
+		f(dev)
+		dev.wait()
+	})
+}
+
+// Device represents the draw device on which multiple windows
+// can be created.
+type Device struct {
+	wg sync.WaitGroup
+}
+
+func newDevice(ss screen.Screen) *Device {
+	mainScreen = ss
+	return &Device{}
+}
+
+// NewDisplay is called to create a new window.
+// There is no special mechanism to create the first window.
+func (dev *Device) NewDisplay(errch chan<- error, fontname, label, winsize string) (*Display, error) {
+	if errch == nil {
+		setDefaultErrorChan()
+		errch = defaultErrorChan
+	}
+	dpy, opt := newDisplay(label, winsize, fontname)
+	dev.wg.Add(1)
+	go func() {
+		createWindow(dpy, opt, errch)
+		dev.wg.Done()
+	}()
+
+	// make sure ScreenImage buffer is allocated
+	<-dpy.mouse.Resize
+
+	return dpy, nil
+}
+
+func (dev *Device) wait() {
+	dev.wg.Wait()
+}
+
 // Init is called to create a new window.
 // There is no special mechanism to create the first window.
+// This function does not work on systems (e.g. macOS) where the
+// OS-specific graphics libraries require being on 'the main thread'.
+// Use Main for best compatiblity.
 func Init(errch chan<- error, fontname, label, winsize string) (*Display, error) {
+	if errch == nil {
+		setDefaultErrorChan()
+		errch = defaultErrorChan
+	}
 	if mainScreen == nil {
-		dpy, opt := newWindow(label, winsize, fontname)
+		dpy, opt := newDisplay(label, winsize, fontname)
 		go driver.Main(func(s screen.Screen) {
 			mainScreen = s
 			createWindow(dpy, opt, errch)
@@ -28,7 +87,7 @@ func Init(errch chan<- error, fontname, label, winsize string) (*Display, error)
 		<-dpy.mouse.Resize
 		return dpy, nil
 	} else {
-		dpy, opt := newWindow(label, winsize, fontname)
+		dpy, opt := newDisplay(label, winsize, fontname)
 		go createWindow(dpy, opt, errch)
 		// make sure ScreenImage buffer is allocated
 		<-dpy.mouse.Resize
@@ -36,9 +95,9 @@ func Init(errch chan<- error, fontname, label, winsize string) (*Display, error)
 	}
 }
 
-// NewWindow creates a Display with it's mouse and keyboard channels.
+// NewDisplay creates a Display with it's mouse and keyboard channels.
 // It registers the window in mainScreen but does not call any shiny functions.
-func newWindow(label, winsize, fontname string) (*Display, screen.NewWindowOptions) {
+func newDisplay(label, winsize, fontname string) (*Display, screen.NewWindowOptions) {
 	opt := screen.NewWindowOptions{
 		Width:  800,
 		Height: 800,
@@ -116,4 +175,23 @@ func createWindow(d *Display, opt screen.NewWindowOptions, errch chan<- error) {
 	d.window = w
 	d.buffer = b
 	d.eventLoop(errch)
+}
+
+var (
+	defaultErrorChan     chan<- error
+	defaultErrorChanOnce sync.Once
+)
+
+func setDefaultErrorChan() {
+	defaultErrorChanOnce.Do(func() {
+		ch := make(chan error)
+		go func() {
+			for err := range ch {
+				if err != io.EOF {
+					fmt.Fprintf(os.Stderr, "duitdraw: %v\n", err)
+				}
+			}
+		}()
+		defaultErrorChan = ch
+	})
 }
