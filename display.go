@@ -5,8 +5,6 @@ import (
 	"image"
 	"image/draw"
 
-	"github.com/atotto/clipboard"
-
 	"golang.org/x/exp/shiny/screen"
 	"golang.org/x/mobile/event/lifecycle"
 )
@@ -116,28 +114,19 @@ func (d *Display) MoveTo(pt image.Point) error {
 func (d *Display) SetDebug(debug bool) {
 }
 
+var errShortSnarfBuffer = fmt.Errorf("ReadSnarf: buffer is too short")
+
 // ReadSnarf reads the snarf buffer into buf, returning the number of bytes read,
 // the total size of the snarf buffer (useful if buf is too short), and any
 // error. No error is returned if there is no problem except for buf being too
 // short.
 func (d *Display) ReadSnarf(buf []byte) (int, int, error) {
-	s, err := clipboard.ReadAll()
-	if err != nil {
-		return 0, 0, err
-	}
-	src := []byte(s)
-	if len(src) <= len(buf) {
-		copy(buf, src)
-		return len(src), len(src), nil
-	} else {
-		copy(buf, src[:len(buf)])
-		return len(buf), len(src), fmt.Errorf("ReadSnarf: buffer is too short")
-	}
+	return d.readSnarf(buf)
 }
 
 // WriteSnarf writes the data to the snarf buffer.
 func (d *Display) WriteSnarf(data []byte) error {
-	return clipboard.WriteAll(string(data))
+	return d.writeSnarf(data)
 }
 
 func (d *Display) ScaleSize(n int) int {
