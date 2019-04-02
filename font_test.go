@@ -1,6 +1,9 @@
 package duitdraw
 
-import "testing"
+import (
+	"image"
+	"testing"
+)
 
 func TestStringWidth(t *testing.T) {
 	tt := []string{
@@ -18,5 +21,19 @@ func TestStringWidth(t *testing.T) {
 		if dx != sum {
 			t.Errorf("StringWidth(%q) is %v; expected %v", tc, dx, sum)
 		}
+	}
+}
+
+func TestImageString(t *testing.T) {
+	d, err := Init(nil, "", "Image String test", "")
+	if err != nil {
+		t.Fatalf("can't open display: %v", err)
+	}
+	defer d.Close()
+
+	dst := d.MakeImage(image.NewRGBA(image.Rect(0, 0, 100, 100)))
+	p := dst.String(image.ZP, d.Black, image.ZP, defaultFont, "Hello, 世界")
+	if p.X <= 0 || p.Y != 0 {
+		t.Errorf("String returned bad point %v", p)
 	}
 }
