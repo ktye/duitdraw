@@ -9,10 +9,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/golang/freetype/truetype"
+	"github.com/ktye/duitdraw/internal/opentype"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/gofont/goregular"
 	"golang.org/x/image/font/plan9font"
+	"golang.org/x/image/font/sfnt"
 	"golang.org/x/image/math/fixed"
 )
 
@@ -71,11 +72,9 @@ func openFont(id FaceID) (*Font, error) {
 	faceCache.Lock()
 	defer faceCache.Unlock()
 	if f, ok := faceCache.m[id]; ok {
-		m := f.Metrics()
-		// TODO(fhs): Remove workaround for wrong m.Height.
 		return &Font{
 			FaceID: id,
-			Height: (m.Ascent + m.Descent).Round(),
+			Height: f.Metrics().Height.Round(),
 			face:   f,
 		}, nil
 	}
@@ -91,34 +90,26 @@ func openFont(id FaceID) (*Font, error) {
 		}
 	}
 
-	if f, err := truetype.Parse(ttf); err != nil {
+	if f, err := sfnt.Parse(ttf); err != nil {
 		return nil, fmt.Errorf("%s: %s", id.Name, err)
 	} else {
-		opt := truetype.Options{
-			Size: float64(id.Size),
-			DPI:  float64(id.DPI),
+		ff, err := opentype.NewFace(f, &opentype.FaceOptions{
+			Size:    float64(id.Size),
+			DPI:     float64(id.DPI),
+			Hinting: font.HintingNone,
+		})
+		if err != nil {
+			return nil, err
 		}
-		face := pixFace{Face: truetype.NewFace(f, &opt)}
+		face := pixFace{Face: ff}
 		faceCache.m[id] = face
 
-		m := face.Metrics()
-		// TODO(fhs): Remove workaround for wrong m.Height.
 		return &Font{
 			FaceID: id,
-			Height: (m.Ascent + m.Descent).Round(),
+			Height: face.Metrics().Height.Round(),
 			face:   face,
 		}, nil
 	}
-
-	/* TODO: use sfnt/opentype, when it's finished.
-	f, err := sfnt.Parse(ttf)
-	opt := opentype.FaceOptions{
-		Size:    12,
-		DPI:     72,
-		Hinting: font.HintingNone,
-	}
-	face, err := opentype.NewFace(f, &opt)
-	*/
 }
 
 func openPlan9Font(id FaceID) (*Font, error) {
@@ -211,6 +202,12 @@ func (f pixFace) Glyph(dot fixed.Point26_6, r rune) (dr image.Rectangle, mask im
 
 func (f pixFace) GlyphBounds(r rune) (bounds fixed.Rectangle26_6, advance fixed.Int26_6, ok bool) {
 	bounds, advance, ok = f.Face.GlyphBounds(r)
+	advance = 64 * fixed.Int26_6(int(advance+32)/64)
+	return
+}
+
+func (f pixFace) GlyphAdvance(r rune) (advance fixed.Int26_6, ok bool) {
+	advance, ok = f.Face.GlyphAdvance(r)
 	advance = 64 * fixed.Int26_6(int(advance+32)/64)
 	return
 }
